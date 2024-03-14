@@ -16,6 +16,8 @@
 
 - 完成后台退出 app 
 
+注：目前
+
 ## 准备工作
 
 ### 安装 AutoJs6 apk
@@ -87,25 +89,82 @@
 
 **注：**
 
-好友置顶：为提高好友查找概率，可在抖音 “好友详情” “更多” 开启 “置顶聊天”
+好友置顶：为提高成功进入好友聊天框概率，可在抖音 “好友详情” “更多” 开启 “置顶聊天”
 
 建议使用闲置备用机，平时息屏，保证电量及时充电
 
 ## 常见问题
 
-### 及时关闭脚本
+### 错误时中止脚本
 
-每次运行脚本失败/卡住/手动停止后，必须在任务栏查看 “运行中任务”，及时清除正在运行的任务，否则脚本叠加无法正常运行
+每次运行脚本失败/卡住/手动停止后，必须在任务栏查看 “运行中任务”，及时清除正在运行的任务后重新运行脚本，否则脚本叠加无法正常运行
 
+<img src="https://raw.githubusercontent.com/KID-1912/Github-PicGo-Images/master/202403142243682.png" title="" alt="" width="280">
 
+### 退出抖音后台
+
+在完成消息发送后，脚本会打开应用管理设置，自动点击“结束运行”实现后台退出抖音
+
+如果你的脚本卡在了这一步，可能是未查找到 强行关闭按钮（不同设备按钮文字不同），根据需要修改代码下方代码
+
+```js
+// 退出app
+function kill_app(packageName) {
+  var name = app.getPackageName(packageName);
+  app.openAppSetting(name);
+  sleep(3000);
+  clickWidgetByPosition(textMatches(/(结束运行|强行停止)/).untilFindOne());
+  sleep(1000);
+  clickWidgetByPosition(textMatches(/(.*确.*|.*定.*)/).untilFindOne());
+  sleep(1000);
+  home();
+}
+```
 
 ## 自定义
 
-自定义内容
+### 自定义文字内容
 
-自定义表情
+默认脚本调用接口，随机获取文字内容输入
 
-互相发送
+你可以选择其它接口，可参考 https://github.com/vv314/quotes
 
-- 2 台手机
-- 抖音双开双账号
+或自定义 `content` 数据源逻辑
+
+```js
+  // 输入内容
+  clickWidgetByPosition(className("android.widget.EditText").untilFindOne());
+  sleep(3000, 100);
+  // 数据源
+  var content = "";
+  var res = http.get("https://v1.hitokoto.cn/");
+  if (res.statusCode == 200) {
+    var data = res.body.json();
+    content = data.hitokoto;
+  } else {
+    content = "今天网络不佳，没词了";
+  }
+  input(content);
+```
+
+### 自定义互动表情
+
+默认发送 “比心" 互动表情，你可以自定义其他表情，但限于首屏可见表情，否则自行添加逻辑
+
+```js
+  // 发送表情
+  clickWidgetByPosition(
+    className("android.widget.ImageView").desc("表情").untilFindOne()
+  );
+  var btnEmoji = className("android.widget.Button").desc("互动表情").findOnce();
+  if (btnEmoji) clickWidgetByPosition(btnEmoji);
+  clickWidgetByPosition(
+    className("android.widget.TextView").text("比心").untilFindOne()
+  );
+```
+
+### 互相发送
+
+目前脚本仅为单账号定时发送消息，若实现 “续火花” 的功能，可以在2台手机分别部署（离大谱）；
+
+另一个思路是 在手机设备使用“双开应用”，2个抖音app分别登录不同账号，修改脚本支持完成主抖音app发送消息后启用副抖音app回复消息，感兴趣可以探究AutoJs6如何区分双开app
