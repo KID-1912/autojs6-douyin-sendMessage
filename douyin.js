@@ -79,11 +79,11 @@ function main() {
   var res = http.get("https://v1.hitokoto.cn/");
   if (res.statusCode == 200) {
     var data = res.body.json();
-    content = data.hitokoto;
+    content = data.hitokoto + " ——《" + data.from + "》";
   } else {
     content = "今天网络不佳，没词了";
   }
-  input(content);
+  setText(content);
   sleep(5000, 100);
   clickWidgetByPosition(
     className("android.widget.ImageView").desc("发送").untilFindOne()
